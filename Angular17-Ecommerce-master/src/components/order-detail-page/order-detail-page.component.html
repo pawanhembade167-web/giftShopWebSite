@@ -1,0 +1,85 @@
+<main class="page-container commerce">
+  <nav class="commerce__crumbs" aria-label="Breadcrumb">
+    <a routerLink="/">Home</a>
+    <span aria-hidden="true">/</span>
+    <a routerLink="/orders">My orders</a>
+    @if (order(); as current) {
+      <span aria-hidden="true">/</span>
+      <span>Order #{{ current.id }}</span>
+    }
+  </nav>
+
+  @if (loading()) {
+    <div class="skeleton-card skeleton-card--wide" aria-busy="true" aria-label="Loading order"></div>
+  } @else if (notFound()) {
+    <div class="state-panel">
+      <h1 class="state-panel__title">We could not find that order</h1>
+      <a class="btn-primary-cta" routerLink="/orders">Back to my orders</a>
+    </div>
+  } @else if (failed()) {
+    <div class="state-panel" role="alert">
+      <h1 class="state-panel__title">We could not load this order</h1>
+      <p>Check your connection and try again.</p>
+    </div>
+  } @else {
+    @if (order(); as current) {
+    <h1 class="commerce__title">Order #{{ current.id }}</h1>
+
+
+    <div class="order-layout">
+      <section class="order-panel" aria-labelledby="timeline-heading">
+        <h2 id="timeline-heading" class="order-panel__title">Status</h2>
+        <ol class="timeline">
+          @for (step of steps(); track step.status) {
+            <li class="timeline__step" [class.is-done]="step.done">
+              <span class="timeline__dot" aria-hidden="true"></span>
+              <span>{{ step.label }}</span>
+            </li>
+          }
+        </ol>
+        <p class="muted">Payment: {{ paymentLabel(current.paymentStatus) }}</p>
+
+        @if (cancellable()) {
+          <button type="button" class="btn-ghost-cta" [disabled]="busy()" (click)="cancel()">
+            {{ busy() ? 'Cancelling…' : 'Cancel order' }}
+          </button>
+        }
+      </section>
+
+      <section class="order-panel" aria-labelledby="items-heading">
+        <h2 id="items-heading" class="order-panel__title">Items</h2>
+        <ul class="order-items">
+          @for (item of current.items; track $index) {
+            <li>
+              <span>{{ item.name }} × {{ item.quantity }}</span>
+              <span>{{ item.lineTotal | currency: currency : 'symbol' : '1.0-2' }}</span>
+            </li>
+          }
+        </ul>
+
+        <dl class="totals">
+          <dt>Subtotal</dt>
+          <dd>{{ current.subtotal | currency: currency : 'symbol' : '1.0-2' }}</dd>
+          <dt>Shipping</dt>
+          <dd>{{ current.shipping === 0 ? 'Free' : (current.shipping | currency: currency : 'symbol' : '1.0-2') }}</dd>
+          <dt>Tax</dt>
+          <dd>{{ current.tax | currency: currency : 'symbol' : '1.0-2' }}</dd>
+          <dt class="totals__total">Total</dt>
+          <dd class="totals__total">{{ current.total | currency: currency : 'symbol' : '1.0-2' }}</dd>
+        </dl>
+      </section>
+
+      <section class="order-panel" aria-labelledby="delivery-heading">
+        <h2 id="delivery-heading" class="order-panel__title">Delivery</h2>
+        <p>
+          <strong>{{ current.address.fullName }}</strong><br />
+          {{ current.address.line1 }}@if (current.address.line2) {, {{ current.address.line2 }}}<br />
+          {{ current.address.city }}, {{ current.address.state }} {{ current.address.postalCode }}<br />
+          {{ current.address.phone }}
+        </p>
+        <p class="muted">Placed {{ current.createdAt | date: 'medium' }}</p>
+      </section>
+    </div>
+    }
+  }
+</main>

@@ -1,0 +1,14 @@
+.venv
+venv
+.DS_Store
+# Secrets, local databases and build output (added before first publish)
+.env
+!.env.example
+backend/.env
+instance/
+*.sqlite
+*.db
+backend/data/
+node_modules/
+dist/
+.angular/

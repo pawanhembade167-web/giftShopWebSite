@@ -1,0 +1,44 @@
+<app-auth-layout title="Welcome back" subtitle="Sign in to see your picks and saved cart.">
+
+  <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="field">
+      <label class="field__label" for="login-email">Email</label>
+      <input
+        id="login-email"
+        type="email"
+        autocomplete="email"
+        formControlName="email"
+        class="form-control"
+        [class.is-invalid]="form.controls.email.touched && form.controls.email.invalid"
+        [attr.aria-invalid]="form.controls.email.touched && form.controls.email.invalid" />
+      @if (form.controls.email.touched && form.controls.email.invalid) {
+        <p class="field__error">Enter a valid email address.</p>
+      }
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="login-password">Password</label>
+      <div class="field__control">
+        <input
+          id="login-password"
+          [type]="showPassword() ? 'text' : 'password'"
+          autocomplete="current-password"
+          formControlName="password" />
+        <button type="button" class="field__toggle" (click)="togglePassword()">
+          {{ showPassword() ? 'Hide' : 'Show' }}
+        </button>
+      </div>
+      @if (form.controls.password.touched && form.controls.password.invalid) {
+        <p class="field__error">Enter your password.</p>
+      }
+    </div>
+
+    <button type="submit" class="btn-primary-cta" [disabled]="submitting()">
+      {{ submitting() ? 'Signing in…' : 'Sign in' }}
+    </button>
+  </form>
+
+  <p class="auth-switch">
+    New to E-Gift Shopping? <a routerLink="/signup">Create an account</a>
+  </p>
+</app-auth-layout>

@@ -1,0 +1,219 @@
+<main class="page-container commerce">
+  <nav class="commerce__crumbs" aria-label="Breadcrumb">
+    <a routerLink="/">Home</a>
+    <span aria-hidden="true">/</span>
+    <a routerLink="/cart">Cart</a>
+    <span aria-hidden="true">/</span>
+    <span>Checkout</span>
+  </nav>
+
+  <h1 class="commerce__title">Checkout</h1>
+
+  <ol class="stepper" aria-label="Checkout progress">
+    @for (item of steps; track item.key; let index = $index) {
+      <li class="stepper__item" [class.is-current]="index === stepIndex()" [class.is-done]="index < stepIndex()">
+        <span class="stepper__index">{{ index + 1 }}</span>
+        <span>{{ item.label }}</span>
+      </li>
+    }
+  </ol>
+
+
+  @if (cart.isEmpty() && step() !== 'review') {
+    <div class="state-panel">
+      <h2 class="state-panel__title">Your cart is empty</h2>
+      <a class="btn-primary-cta" routerLink="/products">Start shopping</a>
+    </div>
+  } @else {
+    <div class="checkout-layout">
+      <section class="checkout-main" aria-live="polite">
+        @switch (step()) {
+          @case ('address') {
+            <h2 class="checkout-main__title">Delivery address</h2>
+
+            @if (addresses().length > 0) {
+              <ul class="address-list" role="radiogroup" aria-label="Saved addresses">
+                @for (address of addresses(); track address.id) {
+                  <li>
+                    <label class="address-card" [class.is-selected]="address.id === selectedAddressId()">
+                      <input
+                        type="radio"
+                        name="address"
+                        [checked]="address.id === selectedAddressId()"
+                        (change)="selectAddress(address.id)" />
+                      <span>
+                        <strong>{{ address.fullName }}</strong>
+                        @if (address.isDefault) {
+                          <span class="badge">Default</span>
+                        }
+                        <br />
+                        {{ address.line1 }}@if (address.line2) {, {{ address.line2 }}}, {{ address.city }}, {{ address.state }} {{ address.postalCode }}
+                        <br />
+                        <span class="muted">{{ address.phone }}</span>
+                      </span>
+                    </label>
+                  </li>
+                }
+              </ul>
+            }
+
+            @if (!addingAddress()) {
+              <button type="button" class="btn-ghost-cta" (click)="showAddressForm()">Add a new address</button>
+            } @else {
+              <form class="auth-form address-form" [formGroup]="addressForm" (ngSubmit)="saveAddress()" novalidate>
+                <div class="form-grid">
+                  <div class="field">
+                    <label class="field__label" for="addr-name">Full name</label>
+                    <input id="addr-name" class="form-control" formControlName="fullName" autocomplete="name"
+                      [class.is-invalid]="isInvalid('fullName')" />
+                  </div>
+                  <div class="field">
+                    <label class="field__label" for="addr-phone">Phone</label>
+                    <input id="addr-phone" class="form-control" formControlName="phone" autocomplete="tel"
+                      [class.is-invalid]="isInvalid('phone')" />
+                    @if (isInvalid('phone')) {
+                      <p class="field__error">Enter a valid phone number.</p>
+                    }
+                  </div>
+                  <div class="field field--wide">
+                    <label class="field__label" for="addr-line1">Address line 1</label>
+                    <input id="addr-line1" class="form-control" formControlName="line1" autocomplete="address-line1"
+                      [class.is-invalid]="isInvalid('line1')" />
+                  </div>
+                  <div class="field field--wide">
+                    <label class="field__label" for="addr-line2">Address line 2 (optional)</label>
+                    <input id="addr-line2" class="form-control" formControlName="line2" autocomplete="address-line2" />
+                  </div>
+                  <div class="field">
+                    <label class="field__label" for="addr-city">City</label>
+                    <input id="addr-city" class="form-control" formControlName="city" autocomplete="address-level2"
+                      [class.is-invalid]="isInvalid('city')" />
+                  </div>
+                  <div class="field">
+                    <label class="field__label" for="addr-state">State</label>
+                    <input id="addr-state" class="form-control" formControlName="state" autocomplete="address-level1"
+                      [class.is-invalid]="isInvalid('state')" />
+                  </div>
+                  <div class="field">
+                    <label class="field__label" for="addr-postal">Postal code</label>
+                    <input id="addr-postal" class="form-control" formControlName="postalCode" autocomplete="postal-code"
+                      [class.is-invalid]="isInvalid('postalCode')" />
+                    @if (isInvalid('postalCode')) {
+                      <p class="field__error">Enter a valid postal code.</p>
+                    }
+                  </div>
+                </div>
+                <div class="form-actions">
+                  <button type="submit" class="btn-primary-cta" [disabled]="savingAddress()">
+                    {{ savingAddress() ? 'Saving…' : 'Save address' }}
+                  </button>
+                  @if (addresses().length > 0) {
+                    <button type="button" class="btn-ghost-cta" (click)="addingAddress.set(false)">Cancel</button>
+                  }
+                </div>
+              </form>
+            }
+          }
+
+          @case ('payment') {
+            <h2 class="checkout-main__title">Payment method</h2>
+            <fieldset class="payment-options">
+              <legend class="visually-hidden">Payment method</legend>
+              @for (option of paymentOptions; track option.value) {
+                <label class="payment-card" [class.is-selected]="paymentMethod() === option.value">
+                  <input
+                    type="radio"
+                    name="payment"
+                    [checked]="paymentMethod() === option.value"
+                    (change)="paymentMethod.set(option.value)" />
+                  <span>
+                    <strong>{{ option.label }}</strong>
+                    <br />
+                    <span class="muted">{{ option.detail }}</span>
+                  </span>
+                </label>
+              }
+            </fieldset>
+          }
+
+          @case ('review') {
+            <h2 class="checkout-main__title">Review your order</h2>
+
+            <h3 class="review__heading">Delivering to</h3>
+            @if (selectedAddress(); as address) {
+              <p class="review__address">
+                <strong>{{ address.fullName }}</strong><br />
+                {{ address.line1 }}@if (address.line2) {, {{ address.line2 }}}, {{ address.city }}, {{ address.state }} {{ address.postalCode }}<br />
+                {{ address.phone }}
+              </p>
+            }
+
+            <h3 class="review__heading">Payment</h3>
+            <p class="review__address">{{ paymentLabel(paymentMethod()) }}</p>
+
+            <h3 class="review__heading">Items</h3>
+            <ul class="review__items">
+              @for (line of cart.lines(); track line.productId) {
+                <li>
+                  <span>{{ line.name }} × {{ line.quantity }}</span>
+                  <span>{{ line.lineTotal | currency: currency : 'symbol' : '1.0-2' }}</span>
+                </li>
+              }
+            </ul>
+          }
+        }
+
+        <div class="checkout-nav">
+          @if (step() !== 'address') {
+            <button type="button" class="btn-ghost-cta" (click)="back()">Back</button>
+          }
+          @if (step() === 'review') {
+            <button type="button" class="btn-primary-cta" [disabled]="placing() || cart.isEmpty()" (click)="placeOrder()">
+              {{ placing() ? 'Placing order…' : 'Place order' }}
+            </button>
+          } @else if (step() === 'address' && addingAddress()) {
+            <span></span>
+          } @else {
+            <button type="button" class="btn-primary-cta" (click)="next()">Continue</button>
+          }
+        </div>
+      </section>
+
+      <aside class="cart-summary" aria-label="Order summary">
+        <h2 class="cart-summary__title">Order summary</h2>
+        <dl class="cart-summary__rows">
+          <dt>Items</dt>
+          <dd>{{ cart.itemCount() }}</dd>
+          <dt>Subtotal</dt>
+          <dd>{{ cart.totals().subtotal | currency: currency : 'symbol' : '1.0-2' }}</dd>
+          <dt>Shipping</dt>
+          <dd>
+            @if (cart.totals().shipping !== null) {
+              {{ cart.totals().shipping === 0 ? 'Free' : (cart.totals().shipping | currency: currency : 'symbol' : '1.0-2') }}
+            } @else {
+              —
+            }
+          </dd>
+          <dt>Tax</dt>
+          <dd>
+            @if (cart.totals().tax !== null) {
+              {{ cart.totals().tax | currency: currency : 'symbol' : '1.0-2' }}
+            } @else {
+              —
+            }
+          </dd>
+        </dl>
+        <p class="cart-summary__total">
+          <span>Total</span>
+          <strong>
+            @if (cart.totals().total !== null) {
+              {{ cart.totals().total | currency: currency : 'symbol' : '1.0-2' }}
+            } @else {
+              {{ cart.totals().subtotal | currency: currency : 'symbol' : '1.0-2' }}
+            }
+          </strong>
+        </p>
+      </aside>
+    </div>
+  }
+</main>

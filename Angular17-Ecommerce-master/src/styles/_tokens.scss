@@ -1,0 +1,13 @@
+// Breakpoints and media-query helpers. Sass-only: emits no CSS on its own, so
+// components can @use it without duplicating the global theme.
+
+$bp-sm: 576px;
+$bp-md: 768px;
+$bp-lg: 992px;
+$bp-xl: 1200px;
+
+@mixin up($breakpoint) {
+  @media (min-width: $breakpoint) {
+    @content;
+  }
+}

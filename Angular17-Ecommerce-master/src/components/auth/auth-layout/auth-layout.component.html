@@ -1,0 +1,21 @@
+<main class="auth">
+  <aside class="auth__brand">
+    <a class="auth__logo" routerLink="/">
+      <span class="auth__logo-mark" aria-hidden="true">E</span>
+      <span>E-Gift Shopping</span>
+    </a>
+    <h2 class="auth__brand-title">Shopping that learns what you like.</h2>
+    <ul class="auth__perks">
+      <li><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Picks shaped by what you browse</li>
+      <li><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> Your cart is saved to your account</li>
+    </ul>
+  </aside>
+
+  <section class="auth__panel">
+    <div class="auth__card">
+      <h1 class="auth__title">{{ title }}</h1>
+      <p class="auth__subtitle">{{ subtitle }}</p>
+      <ng-content />
+    </div>
+  </section>
+</main>

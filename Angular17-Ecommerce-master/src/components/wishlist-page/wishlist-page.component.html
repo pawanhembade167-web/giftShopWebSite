@@ -1,0 +1,48 @@
+<main class="page-container commerce">
+  <nav class="commerce__crumbs" aria-label="Breadcrumb">
+    <a routerLink="/">Home</a>
+    <span aria-hidden="true">/</span>
+    <span>Wishlist</span>
+  </nav>
+
+  <h1 class="commerce__title">Your wishlist <span class="commerce__count">({{ wishlist.count() }})</span></h1>
+
+
+  @if (wishlist.count() === 0) {
+    <div class="state-panel">
+      <h2 class="state-panel__title">Your wishlist is empty</h2>
+      <p>Save products you like and come back to them later.</p>
+      <a class="btn-primary-cta" routerLink="/products">Browse products</a>
+    </div>
+  } @else {
+    <ul class="wish-list" aria-label="Saved products">
+      @for (product of wishlist.items(); track product.id) {
+        <li class="wish-item" [class.is-busy]="busyProductId() === product.id">
+          <a class="wish-item__media" [routerLink]="['/prd', product.id]">
+            <img [src]="product.Img || placeholderImage" [alt]="product.Name" loading="lazy" />
+          </a>
+          <div class="wish-item__body">
+            @if (product.Factory) {
+              <p class="wish-item__brand">{{ product.Factory }}</p>
+            }
+            <a class="wish-item__name" [routerLink]="['/prd', product.id]">{{ product.Name }}</a>
+            <p class="wish-item__price">{{ product.Price | currency: currency : 'symbol' : '1.0-2' }}</p>
+            @if (product.Quantity <= 0) {
+              <p class="wish-item__stock">Out of stock</p>
+            }
+            <div class="wish-item__actions">
+              <button
+                type="button"
+                class="btn-primary-cta"
+                [disabled]="product.Quantity <= 0 || busyProductId() === product.id"
+                (click)="moveToCart(product)">
+                Move to cart
+              </button>
+              <button type="button" class="link-button link-button--danger" (click)="remove(product)">Remove</button>
+            </div>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</main>

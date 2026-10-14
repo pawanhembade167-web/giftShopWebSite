@@ -1,0 +1,10 @@
+@if (showShell()) {
+  <app-header></app-header>
+}
+<router-outlet></router-outlet>
+<app-chatbot></app-chatbot>
+<app-toast-container></app-toast-container>
+<app-hamper-modal></app-hamper-modal>
+@if (showShell()) {
+  <app-footer></app-footer>
+}

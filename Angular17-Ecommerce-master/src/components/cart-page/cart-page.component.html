@@ -1,0 +1,93 @@
+<main class="page-container commerce">
+  <nav class="commerce__crumbs" aria-label="Breadcrumb">
+    <a routerLink="/">Home</a>
+    <span aria-hidden="true">/</span>
+    <span>Cart</span>
+  </nav>
+
+  <h1 class="commerce__title">Your cart</h1>
+
+
+
+  @if (cart.isEmpty()) {
+    <div class="state-panel">
+      <h2 class="state-panel__title">Your cart is empty</h2>
+      <p>Discover products you'll love.</p>
+      <a class="btn-primary-cta" routerLink="/products">Start shopping</a>
+    </div>
+  } @else {
+    <div class="cart-layout">
+      <ul class="cart-lines" aria-label="Items in your cart">
+        @for (line of cart.lines(); track line.productId) {
+          <li class="cart-line" [class.is-busy]="busyProductId() === line.productId">
+            <a class="cart-line__media" [routerLink]="['/prd', line.productId]">
+              <img [src]="line.product.Img || placeholderImage" [alt]="line.name" loading="lazy" />
+            </a>
+
+            <div class="cart-line__body">
+              <a class="cart-line__name" [routerLink]="['/prd', line.productId]">{{ line.name }}</a>
+              <p class="cart-line__price">{{ line.unitPrice | currency: currency : 'symbol' : '1.0-2' }} each</p>
+              @if (line.stock <= 5 && line.stock > 0) {
+                <p class="cart-line__warning">Only {{ line.stock }} left</p>
+              }
+
+              <div class="cart-line__actions">
+                <div class="qty" role="group" aria-label="Quantity">
+                  <button type="button" (click)="decrease(line)" [disabled]="line.quantity <= 1" aria-label="Decrease quantity">−</button>
+                  <span aria-live="polite">{{ line.quantity }}</span>
+                  <button type="button" (click)="increase(line)" [disabled]="line.quantity >= maxQuantity(line)" aria-label="Increase quantity">+</button>
+                </div>
+                @if (signedIn()) {
+                  <button type="button" class="link-button" (click)="saveForLater(line)">Save for later</button>
+                }
+                <button type="button" class="link-button link-button--danger" (click)="remove(line)">Remove</button>
+              </div>
+            </div>
+
+            <p class="cart-line__total">{{ line.lineTotal | currency: currency : 'symbol' : '1.0-2' }}</p>
+          </li>
+        }
+      </ul>
+
+      <aside class="cart-summary" aria-label="Order summary">
+        <h2 class="cart-summary__title">Summary</h2>
+        <dl class="cart-summary__rows">
+          <dt>Subtotal ({{ cart.itemCount() }} {{ cart.itemCount() === 1 ? 'item' : 'items' }})</dt>
+          <dd>{{ cart.totals().subtotal | currency: currency : 'symbol' : '1.0-2' }}</dd>
+          <dt>Shipping</dt>
+          <dd>
+            @if (cart.totals().shipping !== null) {
+              {{ cart.totals().shipping === 0 ? 'Free' : (cart.totals().shipping | currency: currency : 'symbol' : '1.0-2') }}
+            } @else {
+              Calculated at checkout
+            }
+          </dd>
+          <dt>Tax</dt>
+          <dd>
+            @if (cart.totals().tax !== null) {
+              {{ cart.totals().tax | currency: currency : 'symbol' : '1.0-2' }}
+            } @else {
+              Calculated at checkout
+            }
+          </dd>
+        </dl>
+        <p class="cart-summary__total">
+          <span>Total</span>
+          <strong>
+            @if (cart.totals().total !== null) {
+              {{ cart.totals().total | currency: currency : 'symbol' : '1.0-2' }}
+            } @else {
+              {{ cart.totals().subtotal | currency: currency : 'symbol' : '1.0-2' }}
+            }
+          </strong>
+        </p>
+        <button type="button" class="btn-primary-cta cart-summary__checkout" (click)="checkout()">
+          {{ signedIn() ? 'Proceed to checkout' : 'Sign in to checkout' }}
+        </button>
+        @if (!signedIn()) {
+          <p class="cart-summary__hint">Your cart is kept on this device and moves to your account when you sign in.</p>
+        }
+      </aside>
+    </div>
+  }
+</main>

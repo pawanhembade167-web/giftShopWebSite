@@ -1,0 +1,92 @@
+<app-auth-layout title="Create your account" subtitle="It takes less than a minute.">
+
+  <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="field">
+      <label class="field__label" for="signup-name">Full name</label>
+      <input
+        id="signup-name"
+        type="text"
+        autocomplete="name"
+        formControlName="fullName"
+        class="form-control"
+        [class.is-invalid]="form.controls.fullName.touched && form.controls.fullName.invalid" />
+      @if (form.controls.fullName.touched && form.controls.fullName.invalid) {
+        <p class="field__error">Enter at least {{ minNameLength }} characters.</p>
+      }
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="signup-email">Email</label>
+      <input
+        id="signup-email"
+        type="email"
+        autocomplete="email"
+        formControlName="email"
+        class="form-control"
+        [class.is-invalid]="form.controls.email.touched && form.controls.email.invalid" />
+      @if (form.controls.email.touched && form.controls.email.invalid) {
+        <p class="field__error">Enter a valid email address.</p>
+      }
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="signup-phone">Phone number</label>
+      <input
+        id="signup-phone"
+        type="tel"
+        autocomplete="tel"
+        formControlName="phone"
+        class="form-control"
+        [class.is-invalid]="form.controls.phone.touched && form.controls.phone.invalid" />
+      @if (form.controls.phone.touched && form.controls.phone.invalid) {
+        <p class="field__error">Enter a valid phone number with 10 to 15 digits.</p>
+      }
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="signup-password">Password</label>
+      <div class="field__control">
+        <input
+          id="signup-password"
+          [type]="showPassword() ? 'text' : 'password'"
+          autocomplete="new-password"
+          formControlName="password" />
+        <button type="button" class="field__toggle" (click)="togglePassword()">
+          {{ showPassword() ? 'Hide' : 'Show' }}
+        </button>
+      </div>
+      <ul class="rule-list">
+        @for (rule of passwordChecklist; track rule.label) {
+          <li [class.is-met]="rule.met">{{ rule.met ? '✓' : '•' }} {{ rule.label }}</li>
+        }
+      </ul>
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="signup-confirm">Confirm password</label>
+      <input
+        id="signup-confirm"
+        [type]="showPassword() ? 'text' : 'password'"
+        autocomplete="new-password"
+        formControlName="confirmPassword"
+        class="form-control"
+        [class.is-invalid]="form.touched && form.hasError('mismatch')" />
+      @if (form.touched && form.hasError('mismatch')) {
+        <p class="field__error">Passwords do not match.</p>
+      }
+    </div>
+
+    <label class="filter-check">
+      <input type="checkbox" formControlName="acceptTerms" />
+      I agree to the terms of service
+    </label>
+
+    <button type="submit" class="btn-primary-cta" [disabled]="submitting()">
+      {{ submitting() ? 'Creating account…' : 'Create account' }}
+    </button>
+  </form>
+
+  <p class="auth-switch">
+    Already have an account? <a routerLink="/login">Sign in</a>
+  </p>
+</app-auth-layout>

@@ -1,0 +1,44 @@
+<main class="page-container commerce">
+  <nav class="commerce__crumbs" aria-label="Breadcrumb">
+    <a routerLink="/">Home</a>
+    <span aria-hidden="true">/</span>
+    <span>My orders</span>
+  </nav>
+
+  <h1 class="commerce__title">My orders</h1>
+
+  @if (loading()) {
+    <div class="order-skeletons" aria-busy="true" aria-label="Loading orders">
+      <div class="skeleton-card skeleton-card--wide"></div>
+      <div class="skeleton-card skeleton-card--wide"></div>
+    </div>
+  } @else if (failed()) {
+    <div class="state-panel" role="alert">
+      <h2 class="state-panel__title">We could not load your orders.</h2>
+      <button type="button" class="btn-primary-cta" (click)="load()">Try again</button>
+    </div>
+  } @else if (orders().length === 0) {
+    <div class="state-panel">
+      <h2 class="state-panel__title">No orders yet</h2>
+      <p>When you place an order, you can track it here.</p>
+      <a class="btn-primary-cta" routerLink="/products">Start shopping</a>
+    </div>
+  } @else {
+    <ul class="order-list">
+      @for (order of orders(); track order.id) {
+        <li>
+          <a class="order-card" [routerLink]="['/orders', order.id]">
+            <div>
+              <p class="order-card__id">Order #{{ order.id }}</p>
+              <p class="muted">{{ order.createdAt | date: 'mediumDate' }} · {{ order.itemCount }} {{ order.itemCount === 1 ? 'item' : 'items' }}</p>
+            </div>
+            <div class="order-card__meta">
+              <span class="status status--{{ order.status.toLowerCase() }}">{{ statusLabel(order.status) }}</span>
+              <strong>{{ order.total | currency: currency : 'symbol' : '1.0-2' }}</strong>
+            </div>
+          </a>
+        </li>
+      }
+    </ul>
+  }
+</main>

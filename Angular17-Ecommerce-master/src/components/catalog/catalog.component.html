@@ -1,0 +1,223 @@
+<main class="page-container catalog">
+  <nav class="catalog__crumbs" aria-label="Breadcrumb">
+    <a routerLink="/">Home</a>
+    <span aria-hidden="true">/</span>
+    <span>Products</span>
+  </nav>
+
+  <header class="catalog__header">
+    <div>
+      <h1 class="catalog__title">Shop all products</h1>
+      @if (query().filter.subcategory; as sub) {
+        <p class="catalog__scope">
+          Showing {{ sub }}@if (query().filter.productType; as type) { › {{ type }}}
+          <button type="button" class="catalog__scope-clear" (click)="clearSubcategory()" aria-label="Remove subcategory filter">×</button>
+        </p>
+      }
+      <p class="catalog__count" aria-live="polite">
+        {{ total() }} {{ total() === 1 ? 'product' : 'products' }}
+      </p>
+    </div>
+
+    <div class="catalog__controls">
+      <label class="catalog__sort">
+        <span class="visually-hidden">Sort by</span>
+        <select class="form-select" [value]="query().sort" (change)="setSort($any($event.target).value)">
+          @for (option of sortOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </label>
+
+      <div class="layout-toggle" role="group" aria-label="Layout">
+        <button
+          type="button"
+          [class.is-active]="layout() === 'grid'"
+          [attr.aria-pressed]="layout() === 'grid'"
+          (click)="layout.set('grid')">
+          <i class="fa-solid fa-table-cells" aria-hidden="true"></i>
+          <span class="visually-hidden">Grid view</span>
+        </button>
+        <button
+          type="button"
+          [class.is-active]="layout() === 'list'"
+          [attr.aria-pressed]="layout() === 'list'"
+          (click)="layout.set('list')">
+          <i class="fa-solid fa-list" aria-hidden="true"></i>
+          <span class="visually-hidden">List view</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="catalog__layout">
+    <aside class="catalog__filters" aria-label="Filters">
+      <div class="filter-group">
+        <label class="filter-group__label" for="catalog-search">Search</label>
+        <input
+          id="catalog-search"
+          type="search"
+          class="form-control"
+          placeholder="Name or brand"
+          [formControl]="searchControl" />
+      </div>
+
+      <div class="filter-group">
+        <app-fixed-select
+          id="catalog-category"
+          label="Category"
+          placeholder="All categories"
+          [options]="categoryOptions()"
+          [value]="query().filter.categoryId?.toString() ?? ''"
+          (valueChange)="setCategory($event)" />
+      </div>
+
+      @if (subcategoryOptions().length > 0) {
+        <div class="filter-group">
+          <app-fixed-select
+            id="catalog-subcategory"
+            label="Subcategory"
+            [placeholder]="'All in ' + selectedCategoryName()"
+            [options]="subcategorySelectOptions()"
+            [value]="query().filter.subcategory ?? ''"
+            (valueChange)="setSubcategory($event)" />
+        </div>
+      }
+
+      @if (typeOptions().length > 0) {
+        <div class="filter-group">
+          <app-fixed-select
+            id="catalog-type"
+            label="Type"
+            placeholder="All types"
+            [options]="typeSelectOptions()"
+            [value]="query().filter.productType ?? ''"
+            (valueChange)="setProductType($event)" />
+        </div>
+      }
+
+      <div class="filter-group">
+        <app-fixed-select
+          id="catalog-rating"
+          label="Customer rating"
+          placeholder="Any rating"
+          [options]="ratingSelectOptions"
+          [value]="query().filter.minRating?.toString() ?? ''"
+          (valueChange)="setMinRating($event)" />
+      </div>
+
+      <div class="filter-group">
+        <app-fixed-select
+          id="catalog-brand"
+          label="Brand"
+          placeholder="All brands"
+          [options]="brandSelectOptions()"
+          [value]="query().filter.brand ?? ''"
+          (valueChange)="setBrand($event)" />
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-group__label">Price range (₹)</span>
+        <div class="price-range">
+          <input
+            #minInput
+            type="number"
+            min="0"
+            class="form-control"
+            aria-label="Minimum price"
+            placeholder="Min"
+            [value]="query().filter.minPrice ?? ''"
+            (change)="setPriceRange(minInput.value, maxInput.value)" />
+          <input
+            #maxInput
+            type="number"
+            min="0"
+            class="form-control"
+            aria-label="Maximum price"
+            placeholder="Max"
+            [value]="query().filter.maxPrice ?? ''"
+            (change)="setPriceRange(minInput.value, maxInput.value)" />
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-check">
+          <input
+            type="checkbox"
+            [checked]="query().filter.inStockOnly"
+            (change)="setInStockOnly($any($event.target).checked)" />
+          In stock only
+        </label>
+      </div>
+
+      @if (hasActiveFilters()) {
+        <button type="button" class="btn-ghost-cta catalog__clear" (click)="clearFilters()">
+          Clear all filters
+        </button>
+      }
+    </aside>
+
+    <section class="catalog__results" aria-label="Products">
+      @if (loading()) {
+        <div class="catalog__grid" aria-busy="true" aria-label="Loading products">
+          @for (placeholder of skeletonSlots; track placeholder) {
+            <div class="skeleton-card"></div>
+          }
+        </div>
+      } @else if (loadFailed()) {
+        <div class="state-panel" role="alert">
+          <h2 class="state-panel__title">We could not load products</h2>
+          <p>Check your connection and try again.</p>
+          <button type="button" class="btn-primary-cta" (click)="load()">Try again</button>
+        </div>
+      } @else if (products().length === 0) {
+        <div class="state-panel">
+          <h2 class="state-panel__title">No products match your filters</h2>
+          <p>Try a different search or remove some filters.</p>
+          <button type="button" class="btn-ghost-cta" (click)="clearFilters()">Clear filters</button>
+        </div>
+      } @else {
+        <div [class.catalog__grid]="layout() === 'grid'" [class.catalog__list]="layout() === 'list'">
+          @for (product of products(); track product.id) {
+            <app-product-card [product]="product" (addToCart)="addToCart($event)" />
+          }
+        </div>
+
+        @if (totalPages() > 1) {
+          <nav class="pagination" aria-label="Pagination">
+            <button
+              type="button"
+              class="pagination__step"
+              [disabled]="query().page === 1"
+              (click)="goToPage(query().page - 1)">
+              Previous
+            </button>
+            @for (item of pageItems(); track $index) {
+              @if (item === 'gap') {
+                <span class="pagination__gap" aria-hidden="true">…</span>
+              } @else {
+                <button
+                  type="button"
+                  class="pagination__page"
+                  [class.is-current]="item === query().page"
+                  [attr.aria-current]="item === query().page ? 'page' : null"
+                  [attr.aria-label]="'Page ' + item"
+                  (click)="goToPage(item)">
+                  {{ item }}
+                </button>
+              }
+            }
+            <button
+              type="button"
+              class="pagination__step"
+              [disabled]="query().page === totalPages()"
+              (click)="goToPage(query().page + 1)">
+              Next
+            </button>
+          </nav>
+        }
+      }
+
+    </section>
+  </div>
+</main>

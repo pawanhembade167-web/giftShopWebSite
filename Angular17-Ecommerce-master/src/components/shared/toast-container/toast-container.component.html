@@ -1,0 +1,11 @@
+<div class="toast-stack" aria-live="polite">
+  @for (item of toast.toasts(); track item.id) {
+    <div class="toast toast--{{ item.type }}" [attr.role]="item.type === 'error' ? 'alert' : 'status'">
+      <i class="fa-solid toast__icon" [class]="iconFor(item.type)" aria-hidden="true"></i>
+      <p class="toast__message">{{ item.message }}</p>
+      <button type="button" class="toast__close" aria-label="Dismiss" (click)="toast.dismiss(item.id)">
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+      </button>
+    </div>
+  }
+</div>

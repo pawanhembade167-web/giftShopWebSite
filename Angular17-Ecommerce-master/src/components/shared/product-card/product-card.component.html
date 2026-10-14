@@ -1,0 +1,56 @@
+<article class="product-card">
+  <a class="product-card__media" [routerLink]="['/prd', product.id]" [attr.aria-label]="product.Name" (click)="productClicked.emit(product)">
+    <img
+      [src]="product.Img || placeholderImage"
+      [alt]="product.Name"
+      loading="lazy"
+      width="240"
+      height="240" />
+  </a>
+
+  <button
+    type="button"
+    class="product-card__save"
+    [class.is-saved]="isSaved"
+    [attr.aria-pressed]="isSaved"
+    [attr.aria-label]="isSaved ? 'Remove from wishlist' : 'Save to wishlist'"
+    (click)="toggleWishlist()">
+    <i [class]="isSaved ? 'fa-solid fa-heart' : 'fa-regular fa-heart'" aria-hidden="true"></i>
+  </button>
+
+  <div class="product-card__body">
+    @if (product.Factory) {
+      <p class="product-card__brand">{{ product.Factory }}</p>
+    }
+    <h3 class="product-card__title">
+      <a [routerLink]="['/prd', product.id]" (click)="productClicked.emit(product)">{{ product.Name }}</a>
+    </h3>
+
+    <div class="product-card__caption">
+      @if (reason) {
+        <p class="product-card__reason">{{ reason }}</p>
+      }
+      @if (product.Rating && product.ReviewCount) {
+        <p class="product-card__rating">★ {{ product.Rating | number: '1.1-1' }} <span>({{ product.ReviewCount }})</span></p>
+      }
+    </div>
+
+    <div class="product-card__footer">
+      <p class="product-card__price">{{ product.Price | currency: currency : 'symbol' : '1.0-0' }}</p>
+      @if (isOutOfStock) {
+        <span class="product-card__stock product-card__stock--out">Out of stock</span>
+      }
+    </div>
+
+    @if (addToCartEnabled) {
+    <button
+      type="button"
+      class="btn-primary-cta product-card__add"
+      data-testid="add-to-cart"
+      [disabled]="isOutOfStock"
+      (click)="addToCart.emit(product)">
+      Add to cart
+    </button>
+    }
+  </div>
+</article>

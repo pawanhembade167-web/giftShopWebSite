@@ -1,0 +1,195 @@
+<header class="site-header">
+  <div class="site-header__bar">
+    <div class="page-container site-header__inner">
+    <a class="brand" routerLink="/" aria-label="E-Gift Shopping home" (click)="closeAll()">
+      <span class="brand__mark" aria-hidden="true">E</span>
+      <span class="brand__name">E-Gift Shopping</span>
+    </a>
+
+    <form class="site-search" role="search" (ngSubmit)="search()">
+      <label class="visually-hidden" for="header-search">Search products</label>
+      <i class="fa-solid fa-magnifying-glass site-search__icon" aria-hidden="true"></i>
+      <input
+        id="header-search"
+        type="search"
+        class="site-search__input"
+        placeholder="Search products, brands and categories"
+        autocomplete="off"
+        [formControl]="searchControl"
+        (focus)="openSuggestions()" />
+
+      @if (suggestOpen() && searchControl.value.trim()) {
+        <div class="suggest" role="listbox" aria-label="Search suggestions">
+          <a class="suggest__row suggest__search" [routerLink]="['/products']" [queryParams]="{ q: searchControl.value.trim() }" (click)="closeSuggestions()">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            Search for "{{ searchControl.value.trim() }}"
+          </a>
+
+          @if (searching()) {
+            <p class="suggest__hint">Searching…</p>
+          } @else if (!hasSuggestions()) {
+            <p class="suggest__hint">No matches for "{{ searchControl.value.trim() }}". Try a different word, such as a brand or category.</p>
+          }
+
+          @if (suggestions().categories.length > 0) {
+            <p class="suggest__label">Categories</p>
+            @for (category of suggestions().categories; track category.id) {
+              <a class="suggest__row" [routerLink]="['/products']" [queryParams]="{ category: category.id }" (click)="closeSuggestions()">{{ category.name }}</a>
+            }
+          }
+
+          @if (suggestions().subcategories.length > 0) {
+            <p class="suggest__label">Subcategories</p>
+            @for (sub of suggestions().subcategories; track sub.name + sub.categoryId) {
+              <a class="suggest__row" [routerLink]="['/products']" [queryParams]="{ category: sub.categoryId, subcategory: sub.name }" (click)="closeSuggestions()">{{ sub.name }}</a>
+            }
+          }
+
+          @if (suggestions().products.length > 0) {
+            <p class="suggest__label">Products</p>
+            @for (product of suggestions().products; track product.id) {
+              <a class="suggest__row suggest__product" [routerLink]="['/prd', product.id]" (click)="closeSuggestions()">
+                <img [src]="product.Img || 'assets/pngegg.png'" alt="" width="32" height="32" loading="lazy" />
+                <span>{{ product.Name }}</span>
+              </a>
+            }
+          }
+        </div>
+      }
+    </form>
+
+    <nav class="site-actions" aria-label="Account">
+      @if (userLog()) {
+        <button type="button" class="site-actions__link" (click)="logout()">
+          <i class="fa-regular fa-circle-user" aria-hidden="true"></i>
+          <span>Log out</span>
+        </button>
+      } @else {
+        <a class="site-actions__link" routerLink="/login" routerLinkActive="is-active">
+          <i class="fa-regular fa-circle-user" aria-hidden="true"></i>
+          <span>Log in</span>
+        </a>
+      }
+      @if (userLog()) {
+        <a class="site-actions__link" routerLink="/orders" routerLinkActive="is-active">
+          <i class="fa-solid fa-box" aria-hidden="true"></i>
+          <span>Orders</span>
+        </a>
+        <a class="site-actions__link" routerLink="/wishlist" routerLinkActive="is-active">
+          <i class="fa-regular fa-heart" aria-hidden="true"></i>
+          <span>Wishlist</span>
+          @if (wishlistCount() > 0) {
+            <span class="site-actions__badge" [attr.aria-label]="wishlistCount() + ' saved items'">{{ wishlistCount() }}</span>
+          }
+        </a>
+      }
+      <a class="site-actions__link" routerLink="/cart" routerLinkActive="is-active">
+        <i class="fa-solid fa-bag-shopping" aria-hidden="true"></i>
+        <span>Cart</span>
+        @if (cartCount() > 0) {
+          <span class="site-actions__badge" [attr.aria-label]="cartCount() + ' items in cart'">{{ cartCount() }}</span>
+        }
+      </a>
+      <button
+        type="button"
+        class="menu-toggle"
+        [attr.aria-expanded]="menuOpen()"
+        aria-controls="mobile-menu"
+        (click)="toggleMenu()">
+        <i class="fa-solid" [class.fa-bars]="!menuOpen()" [class.fa-xmark]="menuOpen()" aria-hidden="true"></i>
+        <span class="visually-hidden">Toggle menu</span>
+      </button>
+    </nav>
+    </div>
+  </div>
+
+  <div class="site-header__categories">
+    <div class="page-container">
+      <ul class="category-nav" [class.is-open]="menuOpen()" id="mobile-menu">
+        <li class="category-nav__item">
+          <a routerLink="/products" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeAll()">Shop all</a>
+        </li>
+        <li class="category-nav__item">
+          <button type="button" class="category-nav__link" (click)="openHamper()">Custom hamper</button>
+        </li>
+
+        @for (category of topCategories(); track category.id) {
+          <li class="category-nav__item" (pointerenter)="openOnHover($event, category.id)" (pointerleave)="closeOnHover(category.id)">
+            <button
+              type="button"
+              class="category-nav__toggle"
+              [attr.aria-expanded]="openMenu() === category.id"
+              (click)="toggleDropdown(category.id)">
+              {{ category.name }}
+              <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+            </button>
+            @if (openMenu() === category.id) {
+              <div class="dropdown" role="menu">
+                <a class="dropdown__all" [routerLink]="['/products']" [queryParams]="{ category: category.id }" (click)="closeAll()">
+                  All {{ category.name }}
+                </a>
+                <ul class="dropdown__list">
+                  @for (sub of category.subcategories; track sub.name) {
+                    <li>
+                      <a [routerLink]="['/products']" [queryParams]="{ category: category.id, subcategory: sub.name }" (click)="closeAll()">
+                        {{ sub.name }} <span class="dropdown__count">({{ sub.productCount }})</span>
+                      </a>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+          </li>
+        }
+
+        @for (occasion of quickOccasions(); track occasion.categoryId + occasion.name) {
+          <li class="category-nav__item">
+            <a class="category-nav__occasion" [routerLink]="['/products']" [queryParams]="{ category: occasion.categoryId, subcategory: occasion.name }" (click)="closeAll()">{{ occasion.name }}</a>
+          </li>
+        }
+
+        <!-- @if (allCategories().length > 0) {
+          <li class="category-nav__item" (pointerenter)="openOnHover($event, 'all')" (pointerleave)="closeOnHover('all')">
+            <button
+              type="button"
+              class="category-nav__toggle"
+              [attr.aria-expanded]="openMenu() === 'all'"
+              (click)="toggleDropdown('all')">
+              All categories
+              <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+            </button>
+            @if (openMenu() === 'all') {
+              <div class="dropdown dropdown--mega" role="menu">
+                @for (category of allCategories(); track category.id) {
+                  <section class="mega__group">
+                    <a class="mega__title" [routerLink]="['/products']" [queryParams]="{ category: category.id }" (click)="closeAll()">
+                      {{ category.name }} <span class="dropdown__count">({{ category.productCount }})</span>
+                    </a>
+                    <ul class="dropdown__list">
+                      @for (sub of category.subcategories; track sub.name) {
+                        <li>
+                          <a [routerLink]="['/products']" [queryParams]="{ category: category.id, subcategory: sub.name }" (click)="closeAll()">
+                            {{ sub.name }} <span class="dropdown__count">({{ sub.productCount }})</span>
+                          </a>
+                        </li>
+                      }
+                    </ul>
+                  </section>
+                }
+              </div>
+            }
+          </li>
+        } -->
+
+        <li class="category-nav__item">
+          <a routerLink="/AboutUs" routerLinkActive="is-active" (click)="closeAll()">About</a>
+        </li>
+        @if (isAdmin()) {
+          <li class="category-nav__item">
+            <a routerLink="/admin" routerLinkActive="is-active" (click)="closeAll()">Admin</a>
+          </li>
+        }
+      </ul>
+    </div>
+  </div>
+</header>

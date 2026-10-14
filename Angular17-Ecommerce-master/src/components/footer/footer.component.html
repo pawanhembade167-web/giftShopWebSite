@@ -1,0 +1,51 @@
+<footer class="site-footer">
+  <div class="page-container site-footer__links">
+    <nav class="site-footer__column" aria-labelledby="footer-about">
+      <h2 id="footer-about" class="site-footer__heading">About</h2>
+      <a routerLink="/AboutUs">About E-Gift Shopping</a>
+      <a routerLink="/products">Shop all products</a>
+      <a [routerLink]="['/products']" [queryParams]="{ sort: 'rating' }">Best rated</a>
+      <a [routerLink]="['/products']" [queryParams]="{ sort: 'newest' }">New arrivals</a>
+      <a [routerLink]="['/products']" [queryParams]="{ stock: 1 }">In stock now</a>
+      <a routerLink="/cart">Your cart</a>
+      <a routerLink="/">Home</a>
+    </nav>
+
+    <nav class="site-footer__column" aria-labelledby="footer-categories">
+      <h2 id="footer-categories" class="site-footer__heading">Shop by category</h2>
+      @for (category of topCategories(); track category.id) {
+        <a [routerLink]="['/products']" [queryParams]="{ category: category.id }">
+          {{ category.name }} <span class="site-footer__count">({{ category.productCount }})</span>
+        </a>
+      }
+    </nav>
+
+    <nav class="site-footer__column" aria-labelledby="footer-account">
+      <h2 id="footer-account" class="site-footer__heading">My account</h2>
+      <a routerLink="/login">Sign in</a>
+      <a routerLink="/signup">Create account</a>
+      <a routerLink="/orders">My orders</a>
+      <a routerLink="/wishlist">Wishlist</a>
+      <a routerLink="/cart">Cart</a>
+    </nav>
+
+    <section class="site-footer__column site-footer__contact" data-testid="footer-contact" aria-labelledby="footer-contact">
+      <h2 id="footer-contact" class="site-footer__heading">Contact us</h2>
+      <a [href]="'mailto:' + contactEmail">{{ contactEmail }}</a>
+      <a [href]="'tel:' + contactPhoneDial">{{ contactPhone }}</a>
+      <p class="site-footer__muted">{{ contactHours }}</p>
+    </section>
+
+    <div class="site-footer__column site-footer__brand">
+      <h2 class="site-footer__heading">E-Gift Shopping</h2>
+      <p>Shopping that learns what you like.</p>
+      <p class="site-footer__muted">Personal picks from what you browse, what you save and what you buy.</p>
+    </div>
+  </div>
+
+  <div class="site-footer__legal">
+    <div class="page-container">
+      <p>&copy; {{ year }} E-Gift Shopping. All rights reserved.</p>
+    </div>
+  </div>
+</footer>

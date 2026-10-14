@@ -1,0 +1,91 @@
+<section class="hero">
+  <div class="page-container hero__inner">
+    <div class="hero__copy">
+      <p class="hero__eyebrow">E-Gift Shopping</p>
+      <h1 class="hero__title">Discover products you'll love</h1>
+      <p class="hero__subtitle">Personalized picks based on what you browse.</p>
+      <div class="hero__actions">
+        <a class="btn-primary-cta" routerLink="/products">Shop now</a>
+        <a class="btn-ghost-cta" routerLink="/products">Explore categories</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main class="page-container home">
+
+  @if (recommended().length > 0) {
+    <section class="home__section" aria-labelledby="recommended-heading">
+      <div class="home__section-header">
+        <div>
+          <h2 id="recommended-heading" class="section-title">Recommended for you</h2>
+          <p class="home__hint">{{ recommendationHint() }}</p>
+        </div>
+      </div>
+      <div class="product-row">
+        @for (item of recommended(); track item.productId) {
+          <app-product-card
+            [product]="item.product"
+            [reason]="item.reason"
+            (productClicked)="trackClick($event, item.reason)" />
+        }
+      </div>
+    </section>
+  }
+
+  @if (featuredCategories().length > 0) {
+    <section class="home__section" aria-labelledby="categories-heading">
+      <div class="home__section-header">
+        <h2 id="categories-heading" class="section-title">Shop by category</h2>
+      </div>
+      <div class="category-grid">
+        @for (category of featuredCategories(); track category.id) {
+          <a class="category-card" [routerLink]="['/products']" [queryParams]="{ category: category.id }">
+            <span class="category-card__name">{{ category.name }}</span>
+            <span class="category-card__cta">Shop now <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+          </a>
+        }
+      </div>
+    </section>
+  }
+
+  <section class="home__section" aria-labelledby="featured-heading">
+    <div class="home__section-header">
+      <h2 id="featured-heading" class="section-title">Featured products</h2>
+      <a routerLink="/products" class="home__see-all">Shop All</a>
+    </div>
+
+    @if (loading()) {
+      <div class="product-row" aria-busy="true" aria-label="Loading products">
+        @for (slot of skeletonSlots; track slot) {
+          <div class="skeleton-card"></div>
+        }
+      </div>
+    } @else if (loadFailed()) {
+      <div class="state-panel" role="alert">
+        <h3 class="state-panel__title">We could not load products</h3>
+        <p>Check your connection and try again.</p>
+        <button type="button" class="btn-primary-cta" (click)="load()">Try again</button>
+      </div>
+    } @else {
+      <div class="product-row">
+        @for (product of featured(); track product.id) {
+          <app-product-card [product]="product" (addToCart)="addToCart($event)" />
+        }
+      </div>
+    }
+  </section>
+
+  @if (recentlyViewedProducts().length > 0) {
+    <section class="home__section" aria-labelledby="recent-heading">
+      <div class="home__section-header">
+        <h2 id="recent-heading" class="section-title">Recently viewed</h2>
+      </div>
+      <div class="product-row">
+        @for (product of recentlyViewedProducts(); track product.id) {
+          <app-product-card [product]="product" (addToCart)="addToCart($event)" />
+        }
+      </div>
+    </section>
+  }
+</main>

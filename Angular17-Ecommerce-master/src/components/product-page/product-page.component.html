@@ -1,0 +1,139 @@
+<main class="page-container product-page">
+  <nav class="product-page__crumbs" aria-label="Breadcrumb">
+    <a routerLink="/">Home</a>
+    <span aria-hidden="true">/</span>
+    <a routerLink="/products">Products</a>
+    @if (product(); as current) {
+      <span aria-hidden="true">/</span>
+      <span class="product-page__crumb-current">{{ current.Name }}</span>
+    }
+  </nav>
+
+  @if (loading()) {
+    <div class="product-page__layout" aria-busy="true" aria-label="Loading product">
+      <div class="skeleton-block product-page__skeleton-media"></div>
+      <div class="product-page__skeleton-info">
+        <div class="skeleton-line"></div>
+        <div class="skeleton-line skeleton-line--short"></div>
+        <div class="skeleton-line skeleton-line--tall"></div>
+      </div>
+    </div>
+  } @else if (notFound()) {
+    <div class="state-panel">
+      <h1 class="state-panel__title">This product is no longer available</h1>
+      <p>It may have been removed, or the link may be incorrect.</p>
+      <a class="btn-primary-cta" routerLink="/products">Browse products</a>
+    </div>
+  } @else if (loadFailed()) {
+    <div class="state-panel" role="alert">
+      <h1 class="state-panel__title">We could not load this product</h1>
+      <p>Check your connection and try again.</p>
+      <button type="button" class="btn-primary-cta" (click)="retry()">Try again</button>
+    </div>
+  } @else {
+    @if (product(); as current) {
+    <div class="product-page__layout">
+      <div class="gallery">
+        <div
+          class="gallery__frame"
+          (mousemove)="onZoomMove($event)"
+          (mouseleave)="resetZoom()">
+          <img
+            [src]="current.Img || placeholderImage"
+            [alt]="current.Name"
+            [style.transform-origin]="zoomOrigin()"
+            class="gallery__image" />
+        </div>
+        <p class="gallery__hint">Hover over the image to zoom</p>
+      </div>
+
+      <div class="product-info">
+        @if (current.Factory) {
+          <p class="product-info__brand">{{ current.Factory }}</p>
+        }
+        <h1 class="product-info__title">{{ current.Name }}</h1>
+        @if (hasReviews()) {
+          <p class="product-info__rating">★ {{ current.Rating | number: '1.1-1' }} ({{ current.ReviewCount }} reviews)</p>
+        }
+
+        <p class="product-info__price">{{ current.Price | currency: currency : 'symbol' : '1.0-0' }}</p>
+
+        <p class="stock" [class.stock--in]="inStock()" [class.stock--out]="!inStock()">
+          {{ inStock() ? 'In stock' : 'Out of stock' }}
+        </p>
+
+        @if (addToCartEnabled) {
+        <div class="product-info__actions">
+          <button
+            type="button"
+            class="btn-primary-cta"
+            data-testid="product-add-to-cart"
+            [disabled]="!inStock()"
+            (click)="addProductToCart(current)">
+            Add to cart
+          </button>
+          <button type="button" class="btn-ghost-cta" data-testid="product-buy-now" [disabled]="!inStock()" (click)="buyNow(current)">
+            Buy now
+          </button>
+          <button type="button" class="btn-ghost-cta" [attr.aria-pressed]="wishlist.isSaved(current.id)" (click)="toggleWishlist(current)">
+            {{ wishlist.isSaved(current.id) ? 'Saved to wishlist' : 'Save to wishlist' }}
+          </button>
+        </div>
+        }
+
+
+        <section class="product-info__section" aria-labelledby="product-description">
+          <h2 id="product-description" class="product-info__heading">Description</h2>
+          <p>{{ current.Description || 'No description has been added for this product yet.' }}</p>
+        </section>
+
+        <section class="product-info__section" aria-labelledby="product-specs">
+          <h2 id="product-specs" class="product-info__heading">Specifications</h2>
+          <dl class="specs">
+            <dt>Brand</dt>
+            <dd>{{ current.Factory || '—' }}</dd>
+            <dt>Category</dt>
+            <dd>{{ categoryName() }}</dd>
+            <dt>Availability</dt>
+            <dd>{{ inStock() ? 'In stock' : 'Out of stock' }}</dd>
+          </dl>
+        </section>
+      </div>
+    </div>
+
+    }
+    @if (similar().length > 0) {
+      <section class="similar" aria-labelledby="similar-products">
+        <h2 id="similar-products" class="section-title">Similar products</h2>
+        <div class="similar__grid">
+          @for (item of similar(); track item.productId) {
+            <app-product-card [product]="item.product" [reason]="item.reason" (productClicked)="trackClick($event, item.reason)" />
+          }
+        </div>
+      </section>
+    }
+
+    @if (alsoLike().length > 0) {
+      <section class="similar" aria-labelledby="also-like">
+        <h2 id="also-like" class="section-title">You may also like</h2>
+        <div class="similar__grid">
+          @for (item of alsoLike(); track item.productId) {
+            <app-product-card [product]="item.product" [reason]="item.reason" (productClicked)="trackClick($event, item.reason)" />
+          }
+        </div>
+      </section>
+    }
+
+    @if (frequentlyBought().length > 0) {
+      <section class="similar" aria-labelledby="frequently-bought">
+        <h2 id="frequently-bought" class="section-title">Frequently bought together</h2>
+        <p class="home__hint">{{ frequentlyBoughtReason() }}</p>
+        <div class="similar__grid">
+          @for (item of frequentlyBought(); track item.productId) {
+            <app-product-card [product]="item.product" [reason]="item.reason" (productClicked)="trackClick($event, item.reason)" />
+          }
+        </div>
+      </section>
+    }
+  }
+</main>
