@@ -20,7 +20,7 @@ describe('HamperApi', () => {
   it('posts the hamper request with its items and returns the saved summary', () => {
     const request: HamperRequest = {
       title: 'Birthday hamper', occasion: 'Birthday', recipientName: 'Priya', message: null, budget: 2000,
-      deliveryDate: null, giftWrap: true, items: [{ productId: 4, quantity: 2 }],
+      deliveryDate: null, giftWrap: true, addressId: 3, items: [{ productId: 4, quantity: 2 }],
     };
     let saved: { id: number } | undefined;
     api.create(request).subscribe((hamper) => (saved = hamper));

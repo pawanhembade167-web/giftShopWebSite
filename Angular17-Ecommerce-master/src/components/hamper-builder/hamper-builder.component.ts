@@ -6,6 +6,7 @@ import { Subject, catchError, debounceTime, of, switchMap } from 'rxjs';
 import IProduct from '../../models/IProduct';
 import { PRODUCT_CURRENCY, SEARCH_DEBOUNCE_MS } from '../../models/product-display.constants';
 import { CatalogApiService } from '../../Services/catalog-api.service';
+import { AddressDto, CommerceApi } from '../../Services/commerce-api.service';
 import { HamperApi } from '../../Services/hamper-api.service';
 import { ToastService } from '../../Services/toast.service';
 import { messageFrom } from '../../Services/error-message';
@@ -55,6 +56,19 @@ const PRODUCT_PAGE_SIZE = 50;
           <div class="field">
             <label class="field__label" for="hamper-date">Delivery date (optional)</label>
             <input id="hamper-date" class="form-control" type="date" [min]="today" formControlName="deliveryDate" />
+          </div>
+          <div class="field">
+            <label class="field__label" for="hamper-address">Deliver to</label>
+            @if (addresses().length > 0) {
+              <select id="hamper-address" class="form-select" formControlName="addressId">
+                <option [ngValue]="null">Choose a saved address</option>
+                @for (address of addresses(); track address.id) {
+                  <option [ngValue]="address.id">{{ address.fullName }}, {{ address.line1 }}, {{ address.city }} {{ address.postalCode }}</option>
+                }
+              </select>
+            } @else {
+              <p class="hamper__muted">Save a delivery address in your account before sending a hamper request.</p>
+            }
           </div>
           <label class="hamper__check"><input type="checkbox" formControlName="giftWrap" /> Add gift wrapping</label>
           <button type="submit" class="btn-primary-cta" [disabled]="submitting()">
@@ -129,6 +143,7 @@ const PRODUCT_PAGE_SIZE = 50;
 export class HamperBuilderComponent {
   private readonly fb = inject(FormBuilder);
   private readonly catalog = inject(CatalogApiService);
+  private readonly commerce = inject(CommerceApi);
   private readonly hamperApi = inject(HamperApi);
   private readonly toast = inject(ToastService);
   private readonly modal = inject(HamperModal);
@@ -148,6 +163,8 @@ export class HamperBuilderComponent {
   readonly lines = signal<HamperDraftLine[]>([]);
   readonly total = computed(() => hamperTotal(this.lines()));
 
+  readonly addresses = signal<AddressDto[]>([]);
+
   readonly form = this.fb.nonNullable.group({
     title: ['', [Validators.required, Validators.minLength(2)]],
     occasion: [''],
@@ -156,9 +173,15 @@ export class HamperBuilderComponent {
     budget: [null as number | null],
     deliveryDate: [''],
     giftWrap: [false],
+    addressId: [null as number | null, Validators.required],
   });
 
   constructor() {
+    this.commerce.listAddresses().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (addresses) => this.addresses.set(addresses),
+      error: () => this.addresses.set([]),
+    });
+
     this.searchTerms
       .pipe(
         debounceTime(SEARCH_DEBOUNCE_MS),
@@ -252,6 +275,7 @@ export class HamperBuilderComponent {
       budget: value.budget ? Number(value.budget) : null,
       deliveryDate: value.deliveryDate || null,
       giftWrap: value.giftWrap,
+      addressId: Number(value.addressId),
       items: this.lines().map((line) => ({ productId: line.product.id, quantity: line.quantity })),
     }).subscribe({
       next: () => {

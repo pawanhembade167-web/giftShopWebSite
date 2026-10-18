@@ -35,6 +35,7 @@ export const routes: Routes = [
       { path: '', loadComponent: () => import('../components/admin-pages/admin-dashboard.component').then((m) => m.AdminDashboardComponent), title: 'Admin dashboard' },
       { path: 'products', loadComponent: () => import('../components/admin-pages/admin-products.component').then((m) => m.AdminProductsComponent), title: 'Admin products' },
       { path: 'orders', loadComponent: () => import('../components/admin-pages/admin-orders.component').then((m) => m.AdminOrdersComponent), title: 'Admin orders' },
+      { path: 'hampers', loadComponent: () => import('../components/admin-pages/admin-hampers.component').then((m) => m.AdminHampersComponent), title: 'Admin hamper requests' },
       { path: 'users', loadComponent: () => import('../components/admin-pages/admin-users.component').then((m) => m.AdminUsersComponent), title: 'Admin customers' },
     ],
   },

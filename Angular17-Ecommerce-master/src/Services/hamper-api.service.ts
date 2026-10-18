@@ -17,6 +17,7 @@ export interface HamperRequest {
   budget: number | null;
   deliveryDate: string | null;
   giftWrap: boolean;
+  addressId: number;
   items: HamperLine[];
 }
 

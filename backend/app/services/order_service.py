@@ -40,7 +40,7 @@ class OrderService:
             shipping=shipping,
             tax=tax,
             total=total,
-            **_address_snapshot(address),
+            **address_snapshot(address),
         )
         self._orders.add(order)
         self._session.flush()
@@ -147,7 +147,7 @@ class OrderService:
         }
 
 
-def _address_snapshot(address: Address) -> dict:
+def address_snapshot(address: Address) -> dict:
     return {
         "ship_full_name": address.full_name,
         "ship_phone": address.phone,

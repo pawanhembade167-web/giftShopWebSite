@@ -49,6 +49,29 @@ export interface AdminOrder {
   createdAt: string;
 }
 
+export interface AdminHamperItem {
+  productId: number;
+  name: string;
+  unitPrice: number;
+  quantity: number;
+  lineTotal: number;
+}
+
+export interface AdminHamper {
+  id: number;
+  title: string;
+  occasion: string | null;
+  recipientName: string;
+  message: string | null;
+  budget: number | null;
+  deliveryDate: string | null;
+  giftWrap: boolean;
+  estimatedTotal: number;
+  status: string;
+  createdAt: string;
+  items: AdminHamperItem[];
+}
+
 export interface AdminUser {
   id: number;
   fullName: string;
@@ -106,6 +129,16 @@ export class AdminApi {
 
   markPaid(id: number): Observable<unknown> {
     return this.http.patch(`${this.base}/orders/${id}/payment`, { paid: true });
+  }
+
+  hampers(): Observable<AdminHamper[]> {
+    return this.http.get<ApiEnvelope<{ hampers: AdminHamper[] }>>(`${this.base}/hampers`).pipe(map((e) => e.data.hampers));
+  }
+
+  decideHamper(id: number, status: 'ACCEPTED' | 'REJECTED'): Observable<AdminHamper> {
+    return this.http
+      .patch<ApiEnvelope<{ hamper: AdminHamper }>>(`${this.base}/hampers/${id}/status`, { status })
+      .pipe(map((e) => e.data.hamper));
   }
 
   users(): Observable<AdminUser[]> {

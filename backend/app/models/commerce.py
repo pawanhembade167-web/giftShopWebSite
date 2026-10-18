@@ -130,6 +130,8 @@ class CustomHamper(Base):
     gift_wrap: Mapped[bool] = mapped_column(Boolean, default=False)
     estimated_total: Mapped[float] = mapped_column(Float)
     status: Mapped[str] = mapped_column(String(20), default="REQUESTED")
+    address_id: Mapped[int | None] = mapped_column(ForeignKey("addresses.id"), nullable=True)
+    order_id: Mapped[int | None] = mapped_column(ForeignKey("orders.id"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
 

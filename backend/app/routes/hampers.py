@@ -1,4 +1,5 @@
 from datetime import date
+from typing import Literal
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -34,6 +35,7 @@ class HamperIn(BaseModel):
     budget: float | None = Field(default=None, gt=0, le=1_000_000)
     delivery_date: date | None = None
     gift_wrap: bool = False
+    address_id: int
     items: list[HamperLineIn] = Field(min_length=1, max_length=MAX_HAMPER_LINES)
 
     @model_validator(mode="after")
@@ -41,6 +43,10 @@ class HamperIn(BaseModel):
         if self.delivery_date is not None and self.delivery_date < date.today():
             raise ValueError("Choose a delivery date that is today or later.")
         return self
+
+
+class HamperDecisionIn(BaseModel):
+    status: Literal["ACCEPTED", "REJECTED"]
 
 
 def get_hamper_service(session: Session = Depends(get_db_session)) -> HamperService:
@@ -59,6 +65,7 @@ def _hamper_payload(hamper: CustomHamper, items: list[HamperItem]) -> dict:
         "giftWrap": hamper.gift_wrap,
         "estimatedTotal": hamper.estimated_total,
         "status": hamper.status,
+        "orderId": hamper.order_id,
         "createdAt": hamper.created_at.isoformat(),
         "items": [
             {"productId": item.product_id, "name": item.name, "unitPrice": item.unit_price,
@@ -84,6 +91,7 @@ def create_hamper(body: HamperIn, user: User = Depends(get_current_user),
         budget=body.budget,
         delivery_date=body.delivery_date,
         gift_wrap=body.gift_wrap,
+        address_id=body.address_id,
         lines=[(line.product_id, line.quantity) for line in body.items],
     )
     return _envelope({"hamper": _hamper_payload(hamper, service.items(hamper.id))}, "Your hamper request has been sent.")
@@ -99,3 +107,10 @@ def my_hampers(user: User = Depends(get_current_user), service: HamperService = 
 def all_hampers(_: User = Depends(require_admin), service: HamperService = Depends(get_hamper_service)) -> dict:
     hampers = [_hamper_payload(h, service.items(h.id)) for h in service.all()]
     return _envelope({"hampers": hampers}, "Hamper requests fetched.")
+
+
+@admin_router.patch("/{hamper_id}/status")
+def decide_hamper(hamper_id: int, body: HamperDecisionIn, _: User = Depends(require_admin),
+                  service: HamperService = Depends(get_hamper_service)) -> dict:
+    hamper = service.decide(hamper_id, body.status)
+    return _envelope({"hamper": _hamper_payload(hamper, service.items(hamper.id))}, "Hamper request updated.")
