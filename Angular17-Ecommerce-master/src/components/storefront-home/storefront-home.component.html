@@ -49,6 +49,20 @@
     </section>
   }
 
+  @if (flowers().length > 0) {
+    <section class="home__section" aria-labelledby="flowers-heading">
+      <div class="home__section-header">
+        <h2 id="flowers-heading" class="section-title">Flowers</h2>
+        <a routerLink="/products" [queryParams]="{ category: flowerCategory()?.id }" class="home__see-all">Shop all flowers</a>
+      </div>
+      <div class="product-row">
+        @for (product of flowers(); track product.id) {
+          <app-product-card [product]="product" (addToCart)="addToCart($event)" />
+        }
+      </div>
+    </section>
+  }
+
   <section class="home__section" aria-labelledby="featured-heading">
     <div class="home__section-header">
       <h2 id="featured-heading" class="section-title">Featured products</h2>

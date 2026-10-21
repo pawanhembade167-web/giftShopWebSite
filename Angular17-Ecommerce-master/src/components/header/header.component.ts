@@ -17,7 +17,8 @@ import { HamperModal } from '../hamper-builder/hamper-modal.service';
 import { QUICK_OCCASION_LIMIT, TOP_NAV_CATEGORY_COUNT } from '../../models/product-display.constants';
 
 export const ALL_CATEGORIES_MENU = 'all';
-export type OpenMenu = number | typeof ALL_CATEGORIES_MENU | null;
+export const OCCASIONS_MENU = 'occasions';
+export type OpenMenu = number | typeof ALL_CATEGORIES_MENU | typeof OCCASIONS_MENU | null;
 
 @Component({
   selector: 'app-header',

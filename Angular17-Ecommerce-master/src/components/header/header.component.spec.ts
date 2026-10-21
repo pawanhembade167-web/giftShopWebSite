@@ -136,12 +136,25 @@ describe('HeaderComponent', () => {
     expect(component.topCategories().every((category) => category.productCount > 0)).toBeTrue();
   });
 
-  it('puts the top occasions in the bar as direct links, leaving out General', () => {
-    const links = (fixture.nativeElement as HTMLElement).querySelectorAll('.category-nav__occasion');
+  it('groups the occasions under one Occasions dropdown in the bar, leaving out General', () => {
+    const element = fixture.nativeElement as HTMLElement;
+    const toggle = Array.from(element.querySelectorAll<HTMLButtonElement>('.category-nav__toggle'))
+      .find((button) => button.textContent?.trim().startsWith('Occasions'));
 
+    expect(element.querySelectorAll('.category-nav__occasion').length).toBe(0);
+    expect(toggle).toBeDefined();
     expect(component.quickOccasions().length).toBe(TOP_NAV_CATEGORY_COUNT);
-    expect(links.length).toBe(TOP_NAV_CATEGORY_COUNT);
-    expect(links[0].textContent).toContain('Sub 1');
+    expect(component.quickOccasions().some((occasion) => occasion.name === 'General')).toBeFalse();
+  });
+
+  it('lists the occasions inside the Occasions dropdown when it is opened', () => {
+    const element = fixture.nativeElement as HTMLElement;
+    component.toggleDropdown('occasions');
+    fixture.detectChanges();
+
+    const items = element.querySelectorAll('.dropdown a');
+    expect(items.length).toBe(component.quickOccasions().length);
+    expect(items[0].textContent).toContain('Sub 1');
   });
 
   it('shows an open dropdown in full, not clipped by the category bar', () => {

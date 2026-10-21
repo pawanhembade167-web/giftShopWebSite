@@ -5,7 +5,14 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { Observable, catchError, forkJoin, map, of } from 'rxjs';
 import IProduct from '../../models/IProduct';
-import { HOME_CATEGORY_COUNT, HOME_FEATURED_COUNT, PRODUCT_PAGE_SIZE, RECENTLY_VIEWED_DISPLAY_COUNT } from '../../models/product-display.constants';
+import {
+  FLOWER_CATEGORY_NAME,
+  HOME_CATEGORY_COUNT,
+  HOME_FEATURED_COUNT,
+  HOME_FLOWER_COUNT,
+  PRODUCT_PAGE_SIZE,
+  RECENTLY_VIEWED_DISPLAY_COUNT
+} from '../../models/product-display.constants';
 import { AddToCartService } from '../../Services/add-to-cart.service';
 import { CatalogApiService } from '../../Services/catalog-api.service';
 import { CategoryStore } from '../../Services/category-store.service';
@@ -35,6 +42,8 @@ export class StorefrontHomeComponent implements OnInit {
 
   readonly categories = this.categoryStore.categories;
   readonly featuredCategories = computed(() => this.categories().slice(0, HOME_CATEGORY_COUNT));
+  readonly flowerCategory = computed(() => this.categories().find((category) => category.name === FLOWER_CATEGORY_NAME) ?? null);
+  readonly flowers = signal<IProduct[]>([]);
   readonly skeletonSlots = Array.from({ length: PRODUCT_PAGE_SIZE / 2 }, (_, index) => index);
 
   readonly loading = signal(true);
@@ -49,9 +58,24 @@ export class StorefrontHomeComponent implements OnInit {
   );
 
   ngOnInit(): void {
-    this.categoryStore.load().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
+    this.categoryStore.load().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.loadFlowers());
     this.load();
     this.loadRecommendations();
+  }
+
+  private loadFlowers(): void {
+    const flower = this.flowerCategory();
+    if (!flower) {
+      this.flowers.set([]);
+      return;
+    }
+    this.catalogApi
+      .getProducts({ categoryId: flower.id, inStock: true, pageSize: HOME_FLOWER_COUNT, sort: 'rating' })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (page) => this.flowers.set(page.items),
+        error: () => this.flowers.set([])
+      });
   }
 
   trackClick(product: IProduct, reason: string | null): void {

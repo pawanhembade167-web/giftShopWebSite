@@ -125,6 +125,11 @@ RECIPIENTS = (
     "Son", "Friend", "Kids",
 )
 ARCHIES_CATEGORY = "Archies Collection"
+EXPORT_CATEGORIES = {
+    "flowers": "Flowers",
+    "chocolates": "Chocolates",
+    "flowers+chocolates": "Flowers & Chocolates",
+}
 
 
 def _first_tag_in(tags: list[str], known: tuple[str, ...]) -> str | None:
@@ -150,20 +155,26 @@ def _description(row: dict, tags: list[str]) -> str:
 
 
 def read_shopify_products(path: Path, vendor: str) -> Iterator[dict]:
-    """Reads a Shopify product export. Rows without an image are skipped, and only the given vendor is kept."""
+    """Reads a Shopify product export. Rows without an image are skipped.
+
+    Flower and chocolate rows (marked in the export's category column) are kept for every vendor; all other
+    rows are kept only for the given vendor.
+    """
     with path.open(encoding="utf-8", newline="") as handle:
         for row in csv.DictReader(handle):
-            if (row.get("vendor") or "").strip() != vendor:
+            row_vendor = (row.get("vendor") or "").strip()
+            gift_category = EXPORT_CATEGORIES.get((row.get("category") or "").strip().lower())
+            if gift_category is None and row_vendor != vendor:
                 continue
-            image_url = (row.get("image_url") or "").strip()
+            image_url = (row.get("image_url") or row.get("image_1") or "").strip()
             if not image_url:
                 continue
             tags = [tag.strip() for tag in (row.get("tags") or "").split("|") if tag.strip()]
             yield {
                 "source_id": int(row["id"]),
                 "name": row["title"].strip(),
-                "brand": vendor,
-                "category": ARCHIES_CATEGORY,
+                "brand": row_vendor,
+                "category": gift_category or ARCHIES_CATEGORY,
                 "subcategory": _first_tag_in(tags, OCCASIONS) or "General",
                 "product_type": _first_tag_in(tags, RECIPIENTS) or "Gifts",
                 "price": float(row["price"]),
