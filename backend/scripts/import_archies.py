@@ -1,8 +1,8 @@
 """Imports the Archies products (with their images) from a Shopify export.
 
-Only products from the Archies vendor are imported. Images are linked from the Shopify CDN, not copied.
+Archies-vendor products, plus flower and chocolate products from any vendor, are imported. Images are linked from the Shopify CDN, not copied.
 Usage (from the backend folder):
-    python -m scripts.import_archies ../models/archies_gifts_500.csv
+    python -m scripts.import_archies ../models/archies_gifts_with_ch_2000.csv
 """
 
 import argparse

@@ -142,9 +142,27 @@
           </li>
         }
 
-        @for (occasion of quickOccasions(); track occasion.categoryId + occasion.name) {
-          <li class="category-nav__item">
-            <a class="category-nav__occasion" [routerLink]="['/products']" [queryParams]="{ category: occasion.categoryId, subcategory: occasion.name }" (click)="closeAll()">{{ occasion.name }}</a>
+        @if (quickOccasions().length > 0) {
+          <li class="category-nav__item" (pointerenter)="openOnHover($event, 'occasions')" (pointerleave)="closeOnHover('occasions')">
+            <button
+              type="button"
+              class="category-nav__toggle"
+              [attr.aria-expanded]="openMenu() === 'occasions'"
+              (click)="toggleDropdown('occasions')">
+              Occasions
+              <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+            </button>
+            @if (openMenu() === 'occasions') {
+              <div class="dropdown" role="menu">
+                <ul class="dropdown__list">
+                  @for (occasion of quickOccasions(); track occasion.categoryId + occasion.name) {
+                    <li>
+                      <a [routerLink]="['/products']" [queryParams]="{ category: occasion.categoryId, subcategory: occasion.name }" (click)="closeAll()">{{ occasion.name }}</a>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
           </li>
         }
 

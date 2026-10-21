@@ -75,3 +75,60 @@ def test_keeps_the_export_description_when_one_is_present(tmp_path: Path):
     [row] = list(read_shopify_products(path, vendor="Archies"))
 
     assert row["description"] == "Hand-lettered card"
+
+
+NEW_HEADER = (
+    "id,title,handle,description,price,compare_at_price,image_1,image_2,image_3,image_4,all_images,"
+    "vendor,tags,available,product_type,category"
+)
+
+
+def write_new_format(tmp_path: Path, rows: list[str]) -> Path:
+    path = tmp_path / "shop_new.csv"
+    path.write_text("\n".join([NEW_HEADER, *rows]) + "\n", encoding="utf-8")
+    return path
+
+
+def test_files_flower_rows_from_any_vendor_under_flowers(tmp_path: Path):
+    path = write_new_format(tmp_path, [
+        "7,Red Roses,roses,,1189.00,,https://cdn.example/7.webp,,,,,Surendra,Birthday|Flowers,,,flowers",
+    ])
+
+    [row] = list(read_shopify_products(path, vendor="Archies"))
+
+    assert row["category"] == "Flowers"
+    assert row["brand"] == "Surendra"
+    assert row["image_url"] == "https://cdn.example/7.webp"
+    assert row["subcategory"] == "Birthday"
+
+
+def test_files_chocolate_rows_from_any_vendor_under_chocolates(tmp_path: Path):
+    path = write_new_format(tmp_path, [
+        "8,Choco Box,choco,,499.00,,https://cdn.example/8.webp,,,,,MFT,Birthday,,,chocolates",
+    ])
+
+    [row] = list(read_shopify_products(path, vendor="Archies"))
+
+    assert row["category"] == "Chocolates"
+    assert row["brand"] == "MFT"
+
+
+def test_files_combo_rows_under_flowers_and_chocolates(tmp_path: Path):
+    path = write_new_format(tmp_path, [
+        "9,Rose Combo,combo,,899.00,,https://cdn.example/9.webp,,,,,Surendra,Birthday,,,flowers+chocolates",
+    ])
+
+    [row] = list(read_shopify_products(path, vendor="Archies"))
+
+    assert row["category"] == "Flowers & Chocolates"
+
+
+def test_keeps_general_rows_only_for_the_requested_vendor_in_the_new_format(tmp_path: Path):
+    path = write_new_format(tmp_path, [
+        "10,Ours,ours,,100.00,,https://cdn.example/10.webp,,,,,Archies,Birthday,,,general",
+        "11,Theirs,theirs,,100.00,,https://cdn.example/11.webp,,,,,Surendra,Birthday,,,general",
+    ])
+
+    rows = list(read_shopify_products(path, vendor="Archies"))
+
+    assert [(row["name"], row["category"], row["brand"]) for row in rows] == [("Ours", "Archies Collection", "Archies")]
