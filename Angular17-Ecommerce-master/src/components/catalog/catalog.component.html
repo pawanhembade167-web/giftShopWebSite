@@ -98,16 +98,6 @@
 
       <div class="filter-group">
         <app-fixed-select
-          id="catalog-rating"
-          label="Customer rating"
-          placeholder="Any rating"
-          [options]="ratingSelectOptions"
-          [value]="query().filter.minRating?.toString() ?? ''"
-          (valueChange)="setMinRating($event)" />
-      </div>
-
-      <div class="filter-group">
-        <app-fixed-select
           id="catalog-brand"
           label="Brand"
           placeholder="All brands"

@@ -1,12 +1,18 @@
 <article class="product-card">
-  <a class="product-card__media" [routerLink]="['/prd', product.id]" [attr.aria-label]="product.Name" (click)="productClicked.emit(product)">
+  <a
+    class="product-card__link"
+    [routerLink]="['/prd', product.id]"
+    [attr.aria-label]="'View ' + product.Name"
+    (click)="productClicked.emit(product)"></a>
+
+  <div class="product-card__media">
     <img
       [src]="product.Img || placeholderImage"
       [alt]="product.Name"
       loading="lazy"
       width="240"
       height="240" />
-  </a>
+  </div>
 
   <button
     type="button"
@@ -23,7 +29,7 @@
       <p class="product-card__brand">{{ product.Factory }}</p>
     }
     <h3 class="product-card__title">
-      <a [routerLink]="['/prd', product.id]" (click)="productClicked.emit(product)">{{ product.Name }}</a>
+      {{ product.Name }}
     </h3>
 
     <div class="product-card__caption">

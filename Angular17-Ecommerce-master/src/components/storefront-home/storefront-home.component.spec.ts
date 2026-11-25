@@ -57,4 +57,17 @@ describe('StorefrontHomeComponent', () => {
     expect(getProducts).not.toHaveBeenCalledWith(jasmine.objectContaining({ categoryId: jasmine.anything() }));
     expect(element.querySelector('#flowers-heading')).toBeNull();
   });
+
+  it('adds a recommended product to the cart when its button is clicked', () => {
+    render([]);
+    const addProduct = spyOn(TestBed.inject(AddToCartService), 'addProduct').and.returnValue(of('added'));
+    fixture.componentInstance.recommended.set([{ productId: rose.id, product: rose, reason: 'Top rated', score: 1 }]);
+    fixture.detectChanges();
+
+    const button = element.querySelector('[aria-labelledby="recommended-heading"] [data-testid="add-to-cart"]') as HTMLButtonElement;
+    expect(button).not.toBeNull();
+    button.click();
+
+    expect(addProduct).toHaveBeenCalledOnceWith(rose);
+  });
 });

@@ -12,7 +12,6 @@ export interface CatalogRequest {
   categoryId?: number | null;
   subcategory?: string | null;
   productType?: string | null;
-  minRating?: number | null;
   brand?: string | null;
   minPrice?: number | null;
   maxPrice?: number | null;

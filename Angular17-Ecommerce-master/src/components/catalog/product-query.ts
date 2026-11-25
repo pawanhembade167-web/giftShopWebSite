@@ -5,7 +5,6 @@ export interface ProductFilter {
   categoryId: number | null;
   subcategory: string | null;
   productType: string | null;
-  minRating: number | null;
   brand: string | null;
   minPrice: number | null;
   maxPrice: number | null;
@@ -23,7 +22,6 @@ export const DEFAULT_PRODUCT_FILTER: ProductFilter = {
   categoryId: null,
   subcategory: null,
   productType: null,
-  minRating: null,
   brand: null,
   minPrice: null,
   maxPrice: null,
@@ -35,13 +33,6 @@ const SORT_OPTIONS: readonly ProductSort[] = ['relevance', 'price-asc', 'price-d
 function parseNonNegativeNumber(raw: string | null | undefined): number | null {
   const value = Number(raw);
   return raw && Number.isFinite(value) && value >= 0 ? value : null;
-}
-
-const RATING_STEPS = [1, 2, 3, 4, 4.5];
-
-function parseRating(raw: string | null | undefined): number | null {
-  const value = Number(raw);
-  return RATING_STEPS.includes(value) ? value : null;
 }
 
 function parsePositiveInteger(raw: string | null | undefined, fallback: number): number {
@@ -58,7 +49,6 @@ export function parseCatalogParams(params: Record<string, string | null | undefi
       categoryId: parseNonNegativeNumber(params['category']),
       subcategory: params['subcategory'] || null,
       productType: params['type'] || null,
-      minRating: parseRating(params['rating']),
       brand: params['brand'] || null,
       minPrice: parseNonNegativeNumber(params['min']),
       maxPrice: parseNonNegativeNumber(params['max']),
