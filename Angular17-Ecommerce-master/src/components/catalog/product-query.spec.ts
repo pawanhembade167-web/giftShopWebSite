@@ -3,11 +3,11 @@ import { DEFAULT_PRODUCT_FILTER, pageWindow, parseCatalogParams } from './produc
 describe('parseCatalogParams', () => {
   it('reads every catalog filter and sort from the url params', () => {
     const result = parseCatalogParams({
-      q: 'laptop', category: '1', subcategory: 'Nail Polish', type: 'Gel', rating: '4', brand: 'HP', min: '100', max: '500', stock: '1', sort: 'price-asc', page: '2',
+      q: 'laptop', category: '1', subcategory: 'Nail Polish', type: 'Gel', brand: 'HP', min: '100', max: '500', stock: '1', sort: 'price-asc', page: '2',
     });
 
     expect(result.filter).toEqual({
-      search: 'laptop', categoryId: 1, subcategory: 'Nail Polish', productType: 'Gel', minRating: 4, brand: 'HP', minPrice: 100, maxPrice: 500, inStockOnly: true,
+      search: 'laptop', categoryId: 1, subcategory: 'Nail Polish', productType: 'Gel', brand: 'HP', minPrice: 100, maxPrice: 500, inStockOnly: true,
     });
     expect(result.sort).toBe('price-asc');
     expect(result.page).toBe(2);
@@ -30,9 +30,8 @@ describe('parseCatalogParams', () => {
     expect(result.page).toBe(1);
   });
 
-  it('ignores ratings that are not one of the offered steps', () => {
-    expect(parseCatalogParams({ rating: '3.7' }).filter.minRating).toBeNull();
-    expect(parseCatalogParams({ rating: '4.5' }).filter.minRating).toBe(4.5);
+  it('ignores legacy rating filter params', () => {
+    expect(parseCatalogParams({ rating: '4' }).filter).toEqual(DEFAULT_PRODUCT_FILTER);
   });
 
   it('accepts the rating sort', () => {

@@ -27,6 +27,7 @@
           <app-product-card
             [product]="item.product"
             [reason]="item.reason"
+            (addToCart)="addToCart($event)"
             (productClicked)="trackClick($event, item.reason)" />
         }
       </div>

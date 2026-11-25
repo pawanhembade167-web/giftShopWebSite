@@ -77,13 +77,6 @@ export class CatalogComponent {
   readonly selectedCategoryName = computed(() =>
     this.categories().find((category) => category.id === this.query().filter.categoryId)?.name ?? 'category'
   );
-  readonly ratingSelectOptions: FixedSelectOption[] = [
-    { value: '4.5', label: '4.5 & up' },
-    { value: '4', label: '4 & up' },
-    { value: '3', label: '3 & up' },
-    { value: '2', label: '2 & up' },
-    { value: '1', label: '1 & up' },
-  ];
   readonly categoryOptions = computed<FixedSelectOption[]>(() =>
     this.categories()
       .filter((category) => category.productCount > 0)
@@ -153,10 +146,6 @@ export class CatalogComponent {
     this.updateParams({ type: name || null, page: null });
   }
 
-  setMinRating(value: string): void {
-    this.updateParams({ rating: value || null, page: null });
-  }
-
   clearSubcategory(): void {
     this.updateParams({ subcategory: null, type: null, page: null });
   }
@@ -209,7 +198,6 @@ export class CatalogComponent {
       categoryId: filter.categoryId,
       subcategory: filter.subcategory,
       productType: filter.productType,
-      minRating: filter.minRating,
       brand: filter.brand,
       minPrice: filter.minPrice,
       maxPrice: filter.maxPrice,

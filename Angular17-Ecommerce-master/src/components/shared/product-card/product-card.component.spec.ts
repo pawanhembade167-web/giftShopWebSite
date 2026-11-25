@@ -43,6 +43,15 @@ describe('ProductCardComponent', () => {
     expect(text).toContain('₹999');
   });
 
+  it('links the full card to the product detail page', () => {
+    renderProduct(inStockProduct);
+
+    const link = fixture.nativeElement.querySelector('.product-card__link') as HTMLAnchorElement;
+
+    expect(link.getAttribute('href')).toBe('/prd/3');
+    expect(link.getAttribute('aria-label')).toBe('View MSI Katana 15');
+  });
+
   it('emits addToCart with the product when the add button is pressed', () => {
     renderProduct(inStockProduct);
     let emitted: IProduct | undefined;
