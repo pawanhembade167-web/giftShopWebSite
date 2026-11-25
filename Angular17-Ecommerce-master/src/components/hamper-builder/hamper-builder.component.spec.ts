@@ -19,12 +19,16 @@ describe('HamperBuilderComponent', () => {
     city: 'Bengaluru', state: 'Karnataka', postalCode: '560001', country: 'IN', isDefault: true,
   };
   const catalog = jasmine.createSpyObj<CatalogApiService>('CatalogApiService', ['getProducts']);
-  const commerce = jasmine.createSpyObj<CommerceApi>('CommerceApi', ['listAddresses']);
+  const commerce = jasmine.createSpyObj<CommerceApi>('CommerceApi', ['listAddresses', 'createAddress']);
   const hamperApi = jasmine.createSpyObj<HamperApi>('HamperApi', ['create']);
 
   beforeEach(async () => {
+    commerce.listAddresses.calls.reset();
+    commerce.createAddress.calls.reset();
+    hamperApi.create.calls.reset();
     catalog.getProducts.and.returnValue(of({ items: [candle], page: 1, pageSize: 12, total: 1, totalPages: 1 }));
     commerce.listAddresses.and.returnValue(of([home]));
+    commerce.createAddress.and.returnValue(of(home));
     hamperApi.create.and.returnValue(of({ id: 1, title: '', estimatedTotal: 0, status: 'REQUESTED', createdAt: '' }));
     await TestBed.configureTestingModule({
       imports: [HamperBuilderComponent],
@@ -110,5 +114,69 @@ describe('HamperBuilderComponent', () => {
     component.submit();
 
     expect(hamperApi.create).not.toHaveBeenCalled();
+  });
+
+  it('shows validation errors and does not send an incomplete request', () => {
+    component.form.patchValue({ title: '  ', recipientName: '  ' });
+
+    component.submit();
+    fixture.detectChanges();
+
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Enter a hamper name');
+    expect(text).toContain('Enter a recipient name');
+    expect(text).toContain('Choose or add a delivery address');
+    expect(text).toContain('Add at least one item');
+    expect(hamperApi.create).not.toHaveBeenCalled();
+  });
+
+  it('validates and saves a new delivery address, then selects it', () => {
+    component.addingAddress.set(true);
+    component.saveAddress();
+    expect(commerce.createAddress).not.toHaveBeenCalled();
+    expect(component.addressForm.controls.fullName.touched).toBeTrue();
+
+    component.addressForm.patchValue({
+      fullName: ' Asha ', phone: '9876543210', line1: '12 MG Road',
+      city: 'Bengaluru', state: 'Karnataka', postalCode: '560001',
+    });
+    component.saveAddress();
+
+    expect(commerce.createAddress).toHaveBeenCalledWith(jasmine.objectContaining({ fullName: 'Asha', line1: '12 MG Road' }));
+    expect(component.form.controls.addressId.value).toBe(home.id);
+    expect(component.addingAddress()).toBeFalse();
+  });
+
+  it('rejects a phone number without enough digits', () => {
+    component.addressForm.patchValue({
+      fullName: 'Asha', phone: '----------', line1: '12 MG Road',
+      city: 'Bengaluru', state: 'Karnataka', postalCode: '560001',
+    });
+
+    component.saveAddress();
+
+    expect(component.addressForm.controls.phone.invalid).toBeTrue();
+    expect(commerce.createAddress).not.toHaveBeenCalled();
+  });
+
+  it('rejects invalid budgets and past delivery dates', () => {
+    component.form.patchValue({ title: 'Birthday gift', recipientName: 'Priya', addressId: home.id, budget: 0, deliveryDate: '2000-01-01' });
+    component.pick(candle);
+
+    component.submit();
+    fixture.detectChanges();
+
+    expect(hamperApi.create).not.toHaveBeenCalled();
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Choose today or a later delivery date');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Enter a budget greater than zero');
+  });
+
+  it('limits each item quantity to the API maximum', () => {
+    const plentiful = { ...candle, Quantity: 50 };
+    component.pick(plentiful);
+    component.change(plentiful.id, 25);
+    component.pick(plentiful);
+
+    expect(component.lines()[0].quantity).toBe(20);
   });
 });
